@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>sytle.qss</file>
+        <file>close.png</file>
+    </qresource>
+</RCC>

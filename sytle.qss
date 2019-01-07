@@ -1,0 +1,69 @@
+QDialog{
+    background: #e7e7e7;
+}
+QPushButton {
+    background: white;
+    border: 1px solid black;
+    border-radius: 4px;
+}
+QComboBox {
+    font: 20px;
+}
+QLabel {
+    font-size: 14px;
+}
+QGroupBox[objectName="groupBox"] > QPushButton:checked {
+    background: blue;
+    color: white
+}
+QGroupBox#groupBox > QPushButton:!checked {
+    background: white;
+    color: black;
+}
+QGroupBox#groupBox_4 > QPushButton:checked {
+    background: blue;
+    color: white
+}
+QGroupBox#groupBox_4 > QPushButton:!checked {
+    background: white;
+    color: black;
+}
+QGroupBox {
+    border: 2px solid gray;
+    margin-top: 2ex;
+    font: 20px;
+}
+QGroupBox:title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    margin-left: 0px;
+    padding: 0 1px;
+}
+QGroupBox#groupBox_29 > QLineEdit {
+    font: 20px;
+}
+QTabWidget::pane {
+    border-top: 2px solid black;
+}
+QWidget#tab,QWidget#tab_2 {
+}
+QTabWidget::tab-bar {
+    alignment: left;
+    left: 80px;
+    top:5px;
+}
+QTabBar::tab{
+    width: 100px;
+    height: 30px;
+    font-size: 14px;
+}
+
+QPushButton#btn_serwo:!checked, QPushButton#btn_switch:!checked {
+    border-image:url(:/close.png);
+}
+QPushButton#btn_serwo:checked, QPushButton#btn_switch:checked {
+    background: yellow;
+}
+
+
