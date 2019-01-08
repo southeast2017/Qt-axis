@@ -49,6 +49,7 @@ void Operation::readStatus()
     }
 
     // 读取第轴的速度
+    // 缺少一个错误机制
     for (int i = 0; i < 6; i++) {
         QString tmp = "GVL.Axis[" + QString::number(i) +"].NcToPlc.ActVelo";
 
