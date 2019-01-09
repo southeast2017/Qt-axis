@@ -259,7 +259,19 @@ void Dialog::on_pushButton_10_clicked()
     positionStore[3] = ui->label_30->text().toDouble();
     positionStore[4] = ui->label_32->text().toDouble();
     positionStore[5] = ui->label_34->text().toDouble();
-    for (int i = 0; i < 6; ++i) {
-        qDebug()<< positionStore[i]<<endl;
+    QString tmp;
+    for (int i = 0; i < 5; ++i) {
+        tmp += QString::number(positionStore[i]) + ",";
+    }
+    tmp += QString::number(positionStore[5]);
+    ui->textEdit->setText(tmp);
+
+    emit mAds->setAPosition(positionStore);
+}
+
+void Dialog::on_btn_goOn_clicked()
+{
+    if (ui->btn_setModeShow->isCheckable()&&ui->textEdit->toPlainText() != "") {
+        emit mAds->setStatus(-1, 7);
     }
 }

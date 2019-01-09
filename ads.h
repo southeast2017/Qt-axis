@@ -26,6 +26,7 @@ public slots:
     void readStatus();
     void readSpeed(int*);
     void setSwitch(bool);
+    void setAPosition(double*);
 
 signals:
     void setValue(vStruct*);
@@ -55,6 +56,8 @@ signals:
     void readStatus();
     void readSpeed(int*);
     void setSwitch(bool);
+    void setAPosition(double*);
+    void goToAPosition();
 
 private slots:
     void getData();

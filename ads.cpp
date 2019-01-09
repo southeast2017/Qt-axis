@@ -126,6 +126,18 @@ void Operation::setSwitch(bool btnSwitch)
             sizeof(btnSwitch), &btnSwitch);
 }
 
+void Operation::setAPosition(double* value)
+{
+    unsigned long lHdlVar;
+    char targetRegister[] = "GVL.MoveA";
+
+    nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+        &lHdlVar, sizeof(targetRegister), targetRegister);
+
+    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+            sizeof(value[0])*6, value);
+}
+
 Ads::Ads(QObject* parent): QObject (parent)
 {
     mOperation = new Operation();
@@ -138,6 +150,7 @@ Ads::Ads(QObject* parent): QObject (parent)
     QObject::connect(this, &Ads::setSpeed, mOperation, &Operation::setSpeed);
     QObject::connect(this, &Ads::readSpeed, mOperation, &Operation::readSpeed, Qt::DirectConnection);
     QObject::connect(this, &Ads::setSwitch, mOperation, &Operation::setSwitch);
+    QObject::connect(this, &Ads::setAPosition, mOperation, &Operation::setAPosition);
 
     // 可以制作一个定时器，来通过定时器来触发读取数据的函数
     mTimer = new QTimer();
