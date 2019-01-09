@@ -6,6 +6,8 @@ Operation::Operation(QObject* parent): QObject (parent)
     nPort = AdsPortOpen();
     nErr = AdsGetLocalAddress(pAddr);
     pAddr->port = 851;
+
+    mValueStruct = new vStruct[6];
 }
 
 Operation::~Operation()
@@ -23,14 +25,44 @@ void Operation::setStatus(QString command)
     nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
         &lHdlVar, sizeof(szVar), szVar);
 
-    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, 1, &mCommand);
+    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, sizeof(mCommand), &mCommand);
 //    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_RELEASEHND, 0, sizeof(lHdlVar), &lHdlVar);
+}
+
+/* setSpeed => 设置轴的转动速度
+ * axisNumber: 轴编号 (-1: 表示全部轴)
+ * value: 设定值
+*/
+void Operation::setSpeed(QString axisNumber, double value)
+{
+    unsigned long lHdlVar;
+    QString tmp = "GVL.AxisMoveSpeed[" + axisNumber + "]";
+    char* targetRegister = tmp.toLocal8Bit().data();
+
+    nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+        &lHdlVar, unsigned(tmp.length()+1), targetRegister);
+    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+        sizeof(value), &value);
+}
+
+void Operation::readSpeed(int* value)
+{
+    unsigned long lHdlVar;
+    char targetRegister[] = "GVL.AxisMoveSpeed";
+    double tmp[6];
+
+    nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+        &lHdlVar, sizeof(targetRegister), targetRegister);
+
+    nErr = AdsSyncReadReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+                          sizeof(tmp[0])*6, tmp);
+    for (int i = 0; i < 6; ++i) {
+        value[i] = int(tmp[i]);
+    }
 }
 
 void Operation::readStatus()
 {
-    mValueStruct = new vStruct[6];
-
     unsigned long lHdlVar;
 //    char szVar[] = { "MAIN.CurrentJob" };
 //    char szVar[] = "GVL.ModeOfOperation[0]";
@@ -73,7 +105,8 @@ Ads::Ads(QObject* parent): QObject (parent)
 
     QObject::connect(this, &Ads::setStatus, mOperation, &Operation::setStatus);
     QObject::connect(this, &Ads::readStatus, mOperation, &Operation::readStatus);
-
+    QObject::connect(this, &Ads::setSpeed, mOperation, &Operation::setSpeed);
+    QObject::connect(this, &Ads::readSpeed, mOperation, &Operation::readSpeed, Qt::DirectConnection);
 
     // 可以制作一个定时器，来通过定时器来触发读取数据的函数
     mTimer = new QTimer();
@@ -83,6 +116,7 @@ Ads::Ads(QObject* parent): QObject (parent)
 
 Ads::~Ads()
 {
+    delete mTimer;
     delete mOperation;
 }
 

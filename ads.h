@@ -22,7 +22,9 @@ public:
 
 public slots:
     void setStatus(QString);
+    void setSpeed(QString axisNumber, double value);
     void readStatus();
+    void readSpeed(int*);
 
 signals:
     void setValue(vStruct*);
@@ -47,7 +49,9 @@ public:
 
 signals:
     void setStatus(QString);
+    void setSpeed(QString, double);
     void readStatus();
+    void readSpeed(int*);
 private slots:
     void getData();
 

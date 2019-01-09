@@ -243,7 +243,7 @@
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="manPage">
       <property name="enabled">
@@ -503,7 +503,7 @@
                     </font>
                    </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <widget class="QWidget" name="tab">
                     <attribute name="title">
@@ -992,6 +992,12 @@
                 </property>
                 <item>
                  <widget class="QLabel" name="label_17">
+                  <property name="font">
+                   <font>
+                    <family>楷体</family>
+                    <pointsize>14</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>坐标轴选择</string>
                   </property>
@@ -1077,6 +1083,12 @@
                 </property>
                 <item>
                  <widget class="QLabel" name="label_18">
+                  <property name="font">
+                   <font>
+                    <family>楷体</family>
+                    <pointsize>14</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>速度设置</string>
                   </property>
@@ -1229,14 +1241,8 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_21">
               <item row="0" column="0">
-               <widget class="QTabWidget" name="tabWidget_2">
-                <property name="currentIndex">
-                 <number>0</number>
-                </property>
-                <widget class="QWidget" name="tab_3">
-                 <attribute name="title">
-                  <string>Tab 1</string>
-                 </attribute>
+               <widget class="QStackedWidget" name="stackedWidget_2">
+                <widget class="QWidget" name="stackedWidget_2Page1" native="true">
                  <layout class="QGridLayout" name="gridLayout_9" columnstretch="1,2,1,2">
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_47">
@@ -1324,10 +1330,7 @@
                   </item>
                  </layout>
                 </widget>
-                <widget class="QWidget" name="tab_4">
-                 <attribute name="title">
-                  <string>Tab 2</string>
-                 </attribute>
+                <widget class="QWidget" name="stackedWidget_2Page2" native="true">
                  <layout class="QGridLayout" name="gridLayout_10" columnstretch="1,2,1,2">
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_59">

@@ -10,7 +10,7 @@ QComboBox {
     font: 20px;
 }
 QLabel {
-    font-size: 14px;
+    font-size: 20px;
 }
 QGroupBox[objectName="groupBox"] > QPushButton:checked {
     background: blue;
