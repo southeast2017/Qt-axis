@@ -21,13 +21,15 @@ public:
     ~Operation();
 
 public slots:
-    void setStatus(QString);
+    void setStatus(short, short);
     void setSpeed(QString axisNumber, double value);
     void readStatus();
     void readSpeed(int*);
+    void setSwitch(bool);
 
 signals:
     void setValue(vStruct*);
+    void setUiStatus(QString);
 
 private:
     long nErr;
@@ -48,10 +50,12 @@ public:
     Operation *mOperation;
 
 signals:
-    void setStatus(QString);
+    void setStatus(short, short);
     void setSpeed(QString, double);
     void readStatus();
     void readSpeed(int*);
+    void setSwitch(bool);
+
 private slots:
     void getData();
 

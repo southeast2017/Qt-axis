@@ -23,6 +23,7 @@ public:
 
 public slots:
     void setUiValue(vStruct*);
+    void setUiStatus(QString);
 
 private slots:
     void on_btn_setModeMan_clicked();
@@ -34,10 +35,6 @@ private slots:
     void on_btn_setModeShow_clicked();
 
     void on_btn_reset_clicked();
-
-    void on_btn_zDo_clicked();
-
-    void on_btn_fDo_clicked();
 
     void on_horizontalSlider_valueChanged(int value);
 
@@ -55,9 +52,34 @@ private slots:
 
     void on_horizontalSlider_5_valueChanged(int value);
 
+    void on_btn_switch_clicked();
+
+    void on_radioButton_clicked();
+
+    void on_radioButton_2_clicked();
+
+    void on_radioButton_3_clicked();
+
+    void on_radioButton_4_clicked();
+
+    void on_radioButton_5_clicked();
+
+    void on_radioButton_6_clicked();
+
+    void on_btn_zDo_pressed();
+
+    void on_btn_zDo_released();
+
+    void on_btn_fDo_pressed();
+
+    void on_btn_fDo_released();
+
+    void on_pushButton_10_clicked();
+
 private:
     int mCurrentIndexSpeed; // 示教模式下拉框的索引
     int mSpeedMaxValue[6]; // 每个轴的最大速度
+    short mAxisNumber; // 运动轴选择
 
 private:
     Ui::Dialog *ui;

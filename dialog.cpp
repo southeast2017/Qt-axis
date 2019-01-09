@@ -21,13 +21,16 @@ void Dialog::MyUiInit()
     ui->btn_setModeMan->setChecked(true);
     ui->content->setCurrentIndex(0);
     ui->tabWidget->setCurrentIndex(0);
+    ui->radioButton->setChecked(true);
 
     mAds = new Ads();
 
     QObject::connect(mAds->mOperation, &Operation::setValue, this, &Dialog::setUiValue);
+    QObject::connect(mAds->mOperation, &Operation::setUiStatus, this, &Dialog::setUiStatus);
 
     // 示教模式，设置速度的轴索引
     mCurrentIndexSpeed = 0;
+    mAxisNumber = 0;
 
     // 要先读取寄存器内的数据，然后更新界面，进行界面的初始化
     emit mAds->readSpeed(mSpeedMaxValue);
@@ -81,17 +84,7 @@ void Dialog::on_btn_setModeShow_clicked()
 
 void Dialog::on_btn_reset_clicked()
 {
-    emit mAds->setStatus("0");
-}
-
-void Dialog::on_btn_zDo_clicked()
-{
-    emit mAds->setStatus("24");
-}
-
-void Dialog::on_btn_fDo_clicked()
-{
-//    emit mAds->readStatus();
+    emit mAds->setStatus(-1, 6);
 }
 
 void Dialog::setUiValue(vStruct* value)
@@ -109,6 +102,11 @@ void Dialog::setUiValue(vStruct* value)
     ui->label_10->setText(QString::number(value[3].speed));
     ui->label_11->setText(QString::number(value[4].speed));
     ui->label_12->setText(QString::number(value[5].speed));
+}
+
+void Dialog::setUiStatus(QString value)
+{
+    ui->lineEdit->setText(value);
 }
 
 // 设置速度的槽函数 => Begin
@@ -192,5 +190,76 @@ void Dialog::on_horizontalSlider_5_valueChanged(int value)
             break;
         default:
             break;
+    }
+}
+
+void Dialog::on_btn_switch_clicked()
+{
+    emit mAds->setSwitch(ui->btn_switch->isChecked());
+}
+
+// 设置选定轴 => Begin
+void Dialog::on_radioButton_clicked()
+{
+    mAxisNumber = 0;
+}
+
+void Dialog::on_radioButton_2_clicked()
+{
+    mAxisNumber = 1;
+}
+
+void Dialog::on_radioButton_3_clicked()
+{
+    mAxisNumber = 2;
+}
+
+void Dialog::on_radioButton_4_clicked()
+{
+    mAxisNumber = 3;
+}
+
+void Dialog::on_radioButton_5_clicked()
+{
+    mAxisNumber = 4;
+}
+
+void Dialog::on_radioButton_6_clicked()
+{
+    mAxisNumber = 5;
+}
+// 设置选定轴 => End
+
+void Dialog::on_btn_zDo_pressed()
+{
+    emit mAds->setStatus(mAxisNumber, 3);
+}
+
+void Dialog::on_btn_zDo_released()
+{
+    emit mAds->setStatus(-1, 0);
+}
+
+void Dialog::on_btn_fDo_pressed()
+{
+    emit mAds->setStatus(mAxisNumber, 4);
+}
+
+void Dialog::on_btn_fDo_released()
+{
+    emit mAds->setStatus(-1, 0);
+}
+
+void Dialog::on_pushButton_10_clicked()
+{
+    double positionStore[6];
+    positionStore[0] = ui->label_24->text().toDouble();
+    positionStore[1] = ui->label_26->text().toDouble();
+    positionStore[2] = ui->label_28->text().toDouble();
+    positionStore[3] = ui->label_30->text().toDouble();
+    positionStore[4] = ui->label_32->text().toDouble();
+    positionStore[5] = ui->label_34->text().toDouble();
+    for (int i = 0; i < 6; ++i) {
+        qDebug()<< positionStore[i]<<endl;
     }
 }

@@ -15,18 +15,25 @@ Operation::~Operation()
     delete [] mValueStruct;
 }
 
-void Operation::setStatus(QString command)
+void Operation::setStatus(short axis, short status)
 {
     unsigned long lHdlVar;
-    char szVar[] = { "MAIN.CurrentJob" };
-//    char szVar[] = { "GVL.ModeOfOperation[0]" };
-    int mCommand = command.toInt();
+    char szVar1[] = { "GVL.axisNum" };
+    char szVar2[] = { "MAIN.CurrentJob" };
 
+    // 写入坐标轴
+    if (axis > -1) {
+        nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+            &lHdlVar, sizeof(szVar1), szVar1);
+
+        nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, sizeof(axis), &axis);
+    }
+
+    // 写入状态机
     nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
-        &lHdlVar, sizeof(szVar), szVar);
+        &lHdlVar, sizeof(szVar2), szVar2);
 
-    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, sizeof(mCommand), &mCommand);
-//    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_RELEASEHND, 0, sizeof(lHdlVar), &lHdlVar);
+    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, sizeof(status), &status);
 }
 
 /* setSpeed => 设置轴的转动速度
@@ -64,8 +71,6 @@ void Operation::readSpeed(int* value)
 void Operation::readStatus()
 {
     unsigned long lHdlVar;
-//    char szVar[] = { "MAIN.CurrentJob" };
-//    char szVar[] = "GVL.ModeOfOperation[0]";
 
     // 读取第轴的位移
     for (int i = 0; i < 6; i++) {
@@ -93,7 +98,32 @@ void Operation::readStatus()
 
         nErr = AdsSyncReadReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar, sizeof(double), &mValueStruct[i].speed);
     }
+
+    // 读取状态机
+    char targetRegister[] = "MAIN.CurrentJobState";
+    char tmpCommand[80];
+    nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+        &lHdlVar, sizeof(targetRegister), targetRegister);
+    nErr = AdsSyncReadReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+                          sizeof(tmpCommand), &tmpCommand);
+
+    QString resCommand = tmpCommand;
+
+    emit setUiStatus(resCommand);
     emit setValue(mValueStruct);
+}
+
+// 设置开关状态
+void Operation::setSwitch(bool btnSwitch)
+{
+    unsigned long lHdlVar;
+    char targetRegister[] = "MAIN.POWER";
+
+    nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+        &lHdlVar, sizeof(targetRegister), targetRegister);
+
+    nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+            sizeof(btnSwitch), &btnSwitch);
 }
 
 Ads::Ads(QObject* parent): QObject (parent)
@@ -107,6 +137,7 @@ Ads::Ads(QObject* parent): QObject (parent)
     QObject::connect(this, &Ads::readStatus, mOperation, &Operation::readStatus);
     QObject::connect(this, &Ads::setSpeed, mOperation, &Operation::setSpeed);
     QObject::connect(this, &Ads::readSpeed, mOperation, &Operation::readSpeed, Qt::DirectConnection);
+    QObject::connect(this, &Ads::setSwitch, mOperation, &Operation::setSwitch);
 
     // 可以制作一个定时器，来通过定时器来触发读取数据的函数
     mTimer = new QTimer();
