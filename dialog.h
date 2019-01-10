@@ -83,6 +83,8 @@ private:
     int mSpeedMaxValue[6]; // 每个轴的最大速度
     short mAxisNumber; // 运动轴选择
 
+    double positionStore[6];
+
 private:
     Ui::Dialog *ui;
 

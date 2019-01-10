@@ -252,7 +252,6 @@ void Dialog::on_btn_fDo_released()
 
 void Dialog::on_pushButton_10_clicked()
 {
-    double positionStore[6];
     positionStore[0] = ui->label_24->text().toDouble();
     positionStore[1] = ui->label_26->text().toDouble();
     positionStore[2] = ui->label_28->text().toDouble();
