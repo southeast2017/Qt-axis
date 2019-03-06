@@ -8,6 +8,10 @@ Operation::Operation(QObject* parent): QObject (parent)
     pAddr->port = 851;
 
     mValueStruct = new vStruct[6];
+    for (int i = 0; i <= 0; i++) {
+        mValueStruct[i].position = 0;
+        mValueStruct[i].speed = 0;
+    }
 }
 
 Operation::~Operation()
@@ -167,5 +171,5 @@ Ads::~Ads()
 void Ads::getData()
 {
     emit readStatus();
-    mTimer->start(100);
+//    mTimer->start(100);
 }

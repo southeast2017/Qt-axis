@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,13 +27,15 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         dialog.cpp \
-    ads.cpp
+    ads.cpp \
+    tcpserver.cpp
 
 HEADERS += \
         dialog.h \
     ads.h \
     TcAdsAPI.h \
-    TcAdsDef.h
+    TcAdsDef.h \
+    tcpserver.h
 
 FORMS += \
         dialog.ui

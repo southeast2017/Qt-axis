@@ -13,6 +13,9 @@ Dialog::Dialog(QWidget *parent) :
 Dialog::~Dialog()
 {
     delete mAds;
+    delete server;
+    mAds = nullptr;
+    server = nullptr;
     delete ui;
 }
 
@@ -24,6 +27,7 @@ void Dialog::MyUiInit()
     ui->radioButton->setChecked(true);
 
     mAds = new Ads();
+    server = new TcpServer("192.168.43.99", 7777);
 
     QObject::connect(mAds->mOperation, &Operation::setValue, this, &Dialog::setUiValue);
     QObject::connect(mAds->mOperation, &Operation::setUiStatus, this, &Dialog::setUiStatus);

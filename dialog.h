@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QFile>
 #include "ads.h"
+#include "tcpserver.h"
 
 namespace Ui {
 class Dialog;
@@ -88,7 +89,8 @@ private:
 private:
     Ui::Dialog *ui;
 
-    Ads *mAds;
+    Ads* mAds;
+    TcpServer* server;
 };
 
 #endif // DIALOG_H
