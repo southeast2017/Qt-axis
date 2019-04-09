@@ -27,10 +27,13 @@ void Dialog::MyUiInit()
     ui->radioButton->setChecked(true);
 
     mAds = new Ads();
-    server = new TcpServer("192.168.43.99", 7777);
+//    server = new TcpServer("192.168.43.99", 7777);
+    server = new TcpServer("10.21.11.73", 7777);
 
-    QObject::connect(mAds->mOperation, &Operation::setValue, this, &Dialog::setUiValue);
-    QObject::connect(mAds->mOperation, &Operation::setUiStatus, this, &Dialog::setUiStatus);
+    connect(server, &TcpServer::newSocket, this, &Dialog::newSocketConnectToDialog); // 每个socket都与Dialog进行连接
+
+    connect(mAds->mOperation, &Operation::setValue, this, &Dialog::setUiValue);
+    connect(mAds->mOperation, &Operation::setUiStatus, this, &Dialog::setUiStatus);
 
     // 示教模式，设置速度的轴索引
     mCurrentIndexSpeed = 0;
@@ -277,4 +280,50 @@ void Dialog::on_btn_goOn_clicked()
     if (ui->btn_setModeShow->isCheckable()&&ui->textEdit->toPlainText() != "") {
         emit mAds->setStatus(-1, 7);
     }
+}
+
+void Dialog::getIFResultFromSocket(int dir, QVector<double> vector)
+{
+    if (dir == Negative) {
+        ui->lineEdit_10->setText(QString::number(vector[0]));
+        ui->lineEdit_11->setText(QString::number(vector[1]));
+        ui->lineEdit_12->setText(QString::number(vector[2]));
+        ui->lineEdit_13->setText(QString::number(vector[3]));
+        ui->lineEdit_14->setText(QString::number(vector[4]));
+        ui->lineEdit_15->setText(QString::number(vector[5]));
+    } else if (dir == Positive) {
+        ui->lineEdit_7->setText(QString::number(vector[0]));
+        ui->lineEdit_8->setText(QString::number(vector[1]));
+        ui->lineEdit_9->setText(QString::number(vector[2]));
+    }
+}
+
+void Dialog::getRequestFromSocket(int dir)
+{
+    QVector<double> data;
+    if (dir == Positive) {
+        data.append(ui->lineEdit_16->text().toDouble());
+        data.append(ui->lineEdit_17->text().toDouble());
+        data.append(ui->lineEdit_18->text().toDouble());
+        data.append(ui->lineEdit_19->text().toDouble());
+        data.append(ui->lineEdit_20->text().toDouble());
+        data.append(ui->lineEdit_21->text().toDouble());
+    } else if (dir == Negative) {
+        data.append(ui->lineEdit_4->text().toDouble());
+        data.append(ui->lineEdit_5->text().toDouble());
+        data.append(ui->lineEdit_6->text().toDouble());
+    }
+
+    emit sendDataToSocket(dir, data);
+}
+
+void Dialog::newSocketConnectToDialog(TcpSocket* socket)
+{
+    qRegisterMetaType<QVector<double>>("QVector<double>");
+    /* *** 连接：更新ui的信号与槽 *** */
+    connect(socket, &TcpSocket::sendIFResultToDialog, this, &Dialog::getIFResultFromSocket);
+    /* *** 线程从ui获取数据需要阻塞 请求=>页面 *** */
+    connect(socket, &TcpSocket::reqDataFromDialog, this, &Dialog::getRequestFromSocket, Qt::BlockingQueuedConnection);
+    /* *** 线程从ui获取数据需要阻塞 页面-->数据=>页面 *** */
+    connect(this, &Dialog::sendDataToSocket, socket, &TcpSocket::getDataFromDialog);
 }

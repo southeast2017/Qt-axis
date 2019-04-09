@@ -22,9 +22,17 @@ public:
     void MyUiInit();
     void AllButtonReset();
 
+signals:
+    void sendDataToSocket(int, QVector<double>);
+
 public slots:
     void setUiValue(vStruct*);
     void setUiStatus(QString);
+
+
+    void getIFResultFromSocket(int, QVector<double>);
+    void getRequestFromSocket(int);
+    void newSocketConnectToDialog(TcpSocket*);
 
 private slots:
     void on_btn_setModeMan_clicked();

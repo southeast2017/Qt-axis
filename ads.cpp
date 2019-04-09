@@ -43,7 +43,7 @@ void Operation::setStatus(short axis, short status)
 /* setSpeed => 设置轴的转动速度
  * axisNumber: 轴编号 (-1: 表示全部轴)
  * value: 设定值
-*/
+ */
 void Operation::setSpeed(QString axisNumber, double value)
 {
     unsigned long lHdlVar;

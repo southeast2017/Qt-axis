@@ -28,14 +28,16 @@ SOURCES += \
         main.cpp \
         dialog.cpp \
     ads.cpp \
-    tcpserver.cpp
+    tcpserver.cpp \
+    posdata.cpp
 
 HEADERS += \
         dialog.h \
     ads.h \
     TcAdsAPI.h \
     TcAdsDef.h \
-    tcpserver.h
+    tcpserver.h \
+    posdata.h
 
 FORMS += \
         dialog.ui

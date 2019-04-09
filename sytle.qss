@@ -17,7 +17,7 @@ QLabel {
 }
 QGroupBox[objectName="groupBox"] > QPushButton:checked {
     background: blue;
-    color: white
+    color: white;
 }
 QGroupBox#groupBox > QPushButton:!checked {
     background: white;
@@ -25,7 +25,7 @@ QGroupBox#groupBox > QPushButton:!checked {
 }
 QGroupBox#groupBox_4 > QPushButton:checked {
     background: blue;
-    color: white
+    color: white;
 }
 QGroupBox#groupBox_4 > QPushButton:!checked {
     background: white;
