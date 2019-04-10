@@ -6,6 +6,8 @@
 class PosData
 {
 public:
+
+
     PosData();
 };
 
