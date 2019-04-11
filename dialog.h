@@ -87,6 +87,18 @@ private slots:
 
     void on_btn_goOn_clicked();
 
+    void on_pushButton_29_clicked();
+
+    void on_pushButton_11_clicked();
+
+    void on_btn_chooseGCode_clicked();
+
+    void on_btn_position_clicked();
+
+    void on_pushButton_19_clicked();
+
+    void on_pushButton_21_clicked();
+
 private:
     int mCurrentIndexSpeed; // 示教模式下拉框的索引
     int mSpeedMaxValue[6]; // 每个轴的最大速度

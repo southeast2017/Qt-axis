@@ -286,7 +286,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>连续</string>
+             <string>停止</string>
             </property>
            </widget>
           </item>
@@ -299,7 +299,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>正向运动</string>
+             <string>正向</string>
             </property>
            </widget>
           </item>
@@ -325,7 +325,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>复位</string>
+             <string>回零点</string>
             </property>
            </widget>
           </item>
@@ -503,7 +503,7 @@
                     </font>
                    </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <widget class="QWidget" name="tab">
                     <attribute name="title">
@@ -1186,7 +1186,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>参数获取</string>
+                   <string>标记A点</string>
                   </property>
                  </widget>
                 </item>
@@ -1199,7 +1199,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>生成文件</string>
+                   <string>移到A点</string>
                   </property>
                  </widget>
                 </item>
@@ -1212,7 +1212,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>选择G代码</string>
+                   <string>清除A点</string>
                   </property>
                  </widget>
                 </item>
@@ -1225,7 +1225,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>关节坐标</string>
+                   <string>反复</string>
                   </property>
                  </widget>
                 </item>
@@ -1896,7 +1896,7 @@
              </size>
             </property>
             <property name="text">
-             <string>D-H参数</string>
+             <string>Move To Home</string>
             </property>
            </widget>
           </item>
@@ -1915,7 +1915,7 @@
              </size>
             </property>
             <property name="text">
-             <string>复位位置</string>
+             <string>复位</string>
             </property>
            </widget>
           </item>
@@ -1934,7 +1934,7 @@
              </size>
             </property>
             <property name="text">
-             <string>逻辑零点</string>
+             <string>标记零点</string>
             </property>
            </widget>
           </item>

@@ -9,6 +9,7 @@
 #include <QtMath>
 #include <QDebug>
 #include <QDialog>
+#include "ads.h"
 
 #define Positive 1  // 正解
 #define Negative 0  // 反解
@@ -26,7 +27,7 @@ public:
     QVector<double> ikineStep(QVector<QVector<double>>&, QVector<double>); // 运动学反解
 
     void dataAnalysis(QByteArray recBuffer); // 解析处理拼接后的数据
-    bool dataCRC8(QByteArray recBuffer); // 对数据进行CRC校验
+    unsigned char dataCRC8(QByteArray recBuffer); // 对数据进行CRC校验
 
 signals:
     void sendIFResultToDialog(int, QVector<double>); // 数据更新ui
@@ -36,10 +37,16 @@ public slots:
     void ReadAndParseData();                        // 从socket中获取数据
     void getDataFromDialog(int, QVector<double>);   // 从ui获取数据
 
+
+    void sendDataToClient(vStruct*); // 将数据发送给客户端
+
 private:
     QVector<double> AxisPos; // 各轴关节量
     QVector<double> PosXYZ; // 坐标点坐标
     QVector<QVector<double>> GlobalPos; // 姿态矩阵
+
+//    QVector<double> lastState; // 上一次状态
+    QVector<double> ratio = {49.99, 64.56, 99.69, 101.81, 160.68, 121}; // 角度比
 };
 
 

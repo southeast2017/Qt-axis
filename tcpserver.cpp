@@ -7,6 +7,7 @@ TcpSocket::TcpSocket(qintptr socketdesc, QTcpSocket* parent): QTcpSocket(parent)
     AxisPos.fill(0.0, 6);
     PosXYZ.fill(0.0, 3);
     GlobalPos.fill({0, 0, 0, 0}, 4);
+//    lastState.fill(0.0, 6);
 }
 
 TcpSocket::~TcpSocket()
@@ -14,14 +15,13 @@ TcpSocket::~TcpSocket()
 
 }
 
-bool TcpSocket::dataCRC8(QByteArray recBuffer)
+unsigned char TcpSocket::dataCRC8(QByteArray recBuffer)
 {
     unsigned char crc = 0;
     int pBuffer = 0;
 
     // 确保数据正确
-    if (recBuffer.isEmpty())
-        return false;
+//    assert(recBuffer.size() <= 0);
 
     // 计算CRC8校验码
     for (int i = 0; i < recBuffer.size()-2; i++) {
@@ -38,10 +38,11 @@ bool TcpSocket::dataCRC8(QByteArray recBuffer)
         pBuffer++;
     }
 
-    if (crc == *(recBuffer.end()-2))
-        return true;
-    else
-        return false;
+//    if (crc == *(recBuffer.end()-2))
+//        return true;
+//    else
+//        return false;
+    return crc;
 }
 
 void TcpSocket::dataAnalysis(QByteArray recBuffer)
@@ -51,7 +52,7 @@ void TcpSocket::dataAnalysis(QByteArray recBuffer)
         return ;
 
     // [2]对数据进行CRC8校验检查
-    if (dataCRC8(recBuffer)) {
+    if (dataCRC8(recBuffer) == *(recBuffer.end()-2)) {
 
         // 解析数据
         qDebug()<< "data_parse_analysis"<< endl;
@@ -465,4 +466,68 @@ void TcpSocket::getDataFromDialog(int dir, QVector<double> data)
         PosXYZ = data;
         this->iTest();
     }
+}
+
+/* 名称：发送数据给客户端
+ * 描述：将六个轴的坐标数据发送给client端
+ */
+void TcpSocket::sendDataToClient(vStruct* data)
+{
+    QByteArray msg;
+    QVector<int> angle;
+
+    for (int i = 0; i < 6; i++) {
+       int res = int(data[i].position/ratio[i]*2)%360;
+       angle.append(res);
+       qDebug()<< "res:"<< res;
+    }
+
+
+
+    msg.append(0x0B); // 帧头
+    msg.append(0x01); // 命令码
+    for (int i = 0; i < 6; i++) {
+        QByteArray h, l;
+        QByteArray tmp;
+        int tmpAngle = angle[i];
+
+        if (tmpAngle < 0)
+            tmpAngle = -tmpAngle;
+
+        tmp = QByteArray::number(tmpAngle, 16);
+        if (tmp.size() >= 3) {
+            h.push_back(tmp[0]);
+            l.push_back(tmp[1]);
+            l.push_back(tmp[2]);
+            char h_val = char(h.toInt(nullptr, 16));
+            if (angle[i] < 0)
+                h_val |= 0x10;
+            msg.append(h_val);
+            msg.append(char(l.toInt(nullptr, 16)));
+        } else {
+            if (angle[i] < 0)
+                msg.append(char(0x10));
+            else
+                msg.append(char(0x00));
+            msg.append(char(tmp.toInt(nullptr, 16)));
+        }
+
+
+//        QByteArray tmp = QByteArray::number(angle[i], 16);
+//        if (tmp.size() >= 3) {
+//            QByteArray h, l;
+//            h.push_back(tmp[0]);
+//            l.push_back(tmp[1]);
+//            l.push_back(tmp[2]);
+//            msg.append(char(h.toInt(nullptr, 16)));
+//            msg.append(char(l.toInt(nullptr, 16)));
+//        } else {
+//            msg.append(char(0x00));
+//            msg.append(char(tmp.toInt(nullptr, 16)));
+//        }
+    }
+    msg.append(char(dataCRC8(msg)));
+    msg.append(0x0D); // 帧尾
+
+    this->write(msg);
 }

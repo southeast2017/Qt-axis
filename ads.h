@@ -8,6 +8,11 @@
 #include "TcAdsDef.h"
 #include "TcAdsAPI.h"
 
+/* 说明：ads文件主要的服务对象是本程序的界面部分
+ *      所有的对应的操作函数，都是具体针对于界面上的所对应按钮
+ *      本函数虽然可以应用于别的地方，但是不推荐应用于别的地方
+ */
+
 typedef struct {
     double position;
     double speed;
