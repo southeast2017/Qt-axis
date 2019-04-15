@@ -21,31 +21,20 @@ public:
     TcpSocket(qintptr socketdesc, QTcpSocket* parent = nullptr);
     ~TcpSocket();
 
-    void fTest(); // 正解测试  关节量->坐标(x,y,z)
-    void iTest(); // 反解测试  坐标(x,y,z)->关节量
-    void fkineStep(QVector<double>&); // 运动学正解
-    QVector<double> ikineStep(QVector<QVector<double>>&, QVector<double>); // 运动学反解
-
     void dataAnalysis(QByteArray recBuffer); // 解析处理拼接后的数据
     unsigned char dataCRC8(QByteArray recBuffer); // 对数据进行CRC校验
 
 signals:
-    void sendIFResultToDialog(int, QVector<double>); // 数据更新ui
-    void reqDataFromDialog(int);                     // 向ui请求数据
+    void ctrlPotAction(int, int); // 控制机械臂点动
+    void ctrlSaveOrClearPosInfo(int); // 控制记录或者清除点信息
 
 public slots:
     void ReadAndParseData();                        // 从socket中获取数据
-    void getDataFromDialog(int, QVector<double>);   // 从ui获取数据
-
 
     void sendDataToClient(vStruct*); // 将数据发送给客户端
 
 private:
-    QVector<double> AxisPos; // 各轴关节量
-    QVector<double> PosXYZ; // 坐标点坐标
-    QVector<QVector<double>> GlobalPos; // 姿态矩阵
-
-//    QVector<double> lastState; // 上一次状态
+    bool isReturnData; // 控制服务器向client回复pos信息
     QVector<double> ratio = {49.99, 64.56, 99.69, 101.81, 160.68, 121}; // 角度比
 };
 

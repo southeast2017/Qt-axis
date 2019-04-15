@@ -22,16 +22,10 @@ public:
     void MyUiInit();
     void AllButtonReset();
 
-signals:
-    void sendDataToSocket(int, QVector<double>);
-
 public slots:
     void setUiValue(vStruct*);
     void setUiStatus(QString);
 
-
-    void getIFResultFromSocket(int, QVector<double>);
-    void getRequestFromSocket(int);
     void newSocketConnectToDialog(TcpSocket*);
 
 private slots:
@@ -98,6 +92,8 @@ private slots:
     void on_pushButton_19_clicked();
 
     void on_pushButton_21_clicked();
+
+    void ctrlSaveOrClearPosInfo(int act);
 
 private:
     int mCurrentIndexSpeed; // 示教模式下拉框的索引

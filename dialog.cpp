@@ -27,9 +27,9 @@ void Dialog::MyUiInit()
     ui->radioButton->setChecked(true);
 
     mAds = new Ads();
-//    server = new TcpServer("192.168.43.99", 7777);
-//    server = new TcpServer("10.21.11.73", 7777);
-    server = new TcpServer("169.254.245.177", 7777);
+    server = new TcpServer("192.168.43.99", 7777);
+//    server = new TcpServer("10.66.73.73", 7777);
+//    server = new TcpServer("169.254.245.177", 7777);
 
     connect(server, &TcpServer::newSocket, this, &Dialog::newSocketConnectToDialog); // 每个socket都与Dialog进行连接
 
@@ -49,6 +49,11 @@ void Dialog::MyUiInit()
     ui->horizontalSlider_4->setValue(mSpeedMaxValue[3]);
     ui->horizontalSlider_9->setValue(mSpeedMaxValue[4]);
     ui->horizontalSlider_10->setValue(mSpeedMaxValue[5]);
+
+    // 失能"移动到A点"按钮
+    ui->pushButton_11->setDisabled(true);
+    // 失能"反复"按钮
+    ui->btn_position->setDisabled(true);
 }
 
 void Dialog::AllButtonReset()
@@ -99,6 +104,9 @@ void Dialog::on_btn_reset_clicked()
     emit mAds->setStatus(-1, 11);
 }
 
+/* 名称：更新Ui界面数据
+ * 描述：从底层获取数据，然后更新到Ui界面
+ */
 void Dialog::setUiValue(vStruct* value)
 {
     ui->label_24->setText(QString::number(value[0].position));
@@ -322,6 +330,11 @@ void Dialog::on_pushButton_10_clicked()
     ui->textEdit->setText(tmp);
 
     emit mAds->setAPosition(positionStore);
+
+    // 标记A点，将"移动A点"按钮设定为使能状态
+    ui->pushButton_11->setEnabled(true);
+    // 标记A点，将"反复"按钮设定为使能状态
+    ui->btn_position->setEnabled(true);
 }
 
 /* 名称：移动到A点
@@ -345,6 +358,11 @@ void Dialog::on_btn_chooseGCode_clicked()
     ui->textEdit->clear();
 
     emit mAds->setAPosition(positionStore);
+
+    // 未标记A点，将"移动到A点"按钮设为失能状态
+    ui->pushButton_11->setDisabled(true);
+    // 未标记A点，将"反复"按钮设定为失能状态
+    ui->btn_position->setDisabled(true);
 }
 
 /* 名称：反复
@@ -363,55 +381,51 @@ void Dialog::on_btn_goOn_clicked()
     emit mAds->setStatus(-1, 5);
 }
 
-/* 名称：正反解
- * 描述：未来将会删除本个函数
+/* 名称：新的socket与ui线程通信
+ * 描述：新生成的socket与ui线程进行通信，里面是socket线程与ui线程之间信号与槽的连接
  */
-void Dialog::getIFResultFromSocket(int dir, QVector<double> vector)
-{
-    if (dir == Negative) {
-        ui->lineEdit_10->setText(QString::number(vector[0]));
-        ui->lineEdit_11->setText(QString::number(vector[1]));
-        ui->lineEdit_12->setText(QString::number(vector[2]));
-        ui->lineEdit_13->setText(QString::number(vector[3]));
-        ui->lineEdit_14->setText(QString::number(vector[4]));
-        ui->lineEdit_15->setText(QString::number(vector[5]));
-    } else if (dir == Positive) {
-        ui->lineEdit_7->setText(QString::number(vector[0]));
-        ui->lineEdit_8->setText(QString::number(vector[1]));
-        ui->lineEdit_9->setText(QString::number(vector[2]));
-    }
-}
-
-/* 未来将会删除这个函数 */
-void Dialog::getRequestFromSocket(int dir)
-{
-    QVector<double> data;
-    if (dir == Positive) {
-        data.append(ui->lineEdit_16->text().toDouble());
-        data.append(ui->lineEdit_17->text().toDouble());
-        data.append(ui->lineEdit_18->text().toDouble());
-        data.append(ui->lineEdit_19->text().toDouble());
-        data.append(ui->lineEdit_20->text().toDouble());
-        data.append(ui->lineEdit_21->text().toDouble());
-    } else if (dir == Negative) {
-        data.append(ui->lineEdit_4->text().toDouble());
-        data.append(ui->lineEdit_5->text().toDouble());
-        data.append(ui->lineEdit_6->text().toDouble());
-    }
-
-    emit sendDataToSocket(dir, data);
-}
-
 void Dialog::newSocketConnectToDialog(TcpSocket* socket)
 {
-    qRegisterMetaType<QVector<double>>("QVector<double>");
-    /* *** 连接：更新ui的信号与槽 *** */
-    connect(socket, &TcpSocket::sendIFResultToDialog, this, &Dialog::getIFResultFromSocket);
-    /* *** 线程从ui获取数据需要阻塞 请求=>页面 *** */
-    connect(socket, &TcpSocket::reqDataFromDialog, this, &Dialog::getRequestFromSocket, Qt::BlockingQueuedConnection);
-    /* *** 线程从ui获取数据需要阻塞 页面-->数据=>页面 *** */
-    connect(this, &Dialog::sendDataToSocket, socket, &TcpSocket::getDataFromDialog);
-    /* *** 线程读取的数据发送到TCP线程中 *** */
+    // 控制回复位置信息
     connect(mAds->mOperation, &Operation::setValue, socket, &TcpSocket::sendDataToClient);
+    // 每个轴的点动控制
+    connect(socket, &TcpSocket::ctrlPotAction, mAds->mOperation, &Operation::setStatus);
+    // 控制状态机
+    connect(socket, &TcpSocket::ctrlSaveOrClearPosInfo, this, &Dialog::ctrlSaveOrClearPosInfo);
+}
+
+/* 名称：控制保存或者是清除位置信息
+ * 描述：用来控制机械臂清除或者标记位置信息
+ */
+void Dialog::ctrlSaveOrClearPosInfo(int act)
+{
+    switch (act) {
+        case 1: // 标记0点
+            on_pushButton_29_clicked();
+            break;
+        case 5: // 设置为停止状态
+            on_btn_goOn_clicked();
+            break;
+        case 6: // Move To Home
+            on_pushButton_21_clicked();
+            break;
+        case 8: // 反复
+            on_btn_position_clicked();
+            break;
+        case 11: // 回到0点
+            on_btn_reset_clicked();
+            break;
+        case 12: // 标记A点
+            on_pushButton_10_clicked();
+            break;
+        case 13: // 移到A点
+            on_pushButton_11_clicked();
+            break;
+        case 14: // 清除A点
+            on_btn_chooseGCode_clicked();
+            break;
+        default:
+            break;
+    }
 }
 
