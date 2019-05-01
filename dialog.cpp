@@ -28,8 +28,7 @@ void Dialog::MyUiInit()
 
     mAds = new Ads();
     server = new TcpServer("192.168.43.99", 7777);
-//    server = new TcpServer("10.66.73.73", 7777);
-//    server = new TcpServer("169.254.245.177", 7777);
+//    server = new TcpServer("10.21.11.30", 7777);
 
     connect(server, &TcpServer::newSocket, this, &Dialog::newSocketConnectToDialog); // 每个socket都与Dialog进行连接
 

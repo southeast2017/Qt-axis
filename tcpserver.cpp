@@ -43,7 +43,7 @@ void TcpSocket::dataAnalysis(QByteArray recBuffer)
     // [1]确保数据正确
     if (recBuffer.isEmpty())
         return ;
-//    qDebug()<< "do?";
+
     // [2]对数据进行CRC8校验检查
 //    if (dataCRC8(recBuffer) == *(recBuffer.end()-2)) {
 
@@ -187,13 +187,30 @@ void TcpServer::incomingConnection(qintptr socketDescriptor)
 void TcpSocket::sendDataToClient(vStruct* data)
 {
     if (isReturnData) {
+        QJsonObject jsonObject;
+        jsonObject.insert("one", data[0].position);
+        jsonObject.insert("two", data[1].position);
+        jsonObject.insert("three", data[2].position);
+        jsonObject.insert("four", data[3].position);
+        jsonObject.insert("five", data[4].position);
+        jsonObject.insert("six", data[5].position);
+
+        QJsonDocument jsonDocument;
+        jsonDocument.setObject(jsonObject);
+        QByteArray dataArray = jsonDocument.toJson();
+
+        this->write(dataArray);
+        this->flush();
+    }
+
+/*
+    if (isReturnData) {
         QByteArray msg;
         QVector<int> angle;
 
         for (int i = 0; i < 6; i++) {
            int res = int(data[i].position/ratio[i]*2)%360;
            angle.append(res);
-//           qDebug()<< "res:"<< res;
         }
 
         msg.append(0x0B); // 帧头
@@ -230,4 +247,5 @@ void TcpSocket::sendDataToClient(vStruct* data)
         qDebug()<< msg;
         this->write(msg);
     }
+*/
 }

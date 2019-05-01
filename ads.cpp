@@ -159,7 +159,7 @@ Ads::Ads(QObject* parent): QObject (parent)
     // 可以制作一个定时器，来通过定时器来触发读取数据的函数
     mTimer = new QTimer();
     QObject::connect(mTimer, &QTimer::timeout, this, &Ads::getData);
-    mTimer->start(100);
+    mTimer->start(150);
 }
 
 Ads::~Ads()
@@ -171,5 +171,4 @@ Ads::~Ads()
 void Ads::getData()
 {
     emit readStatus();
-//    mTimer->start(100);
 }
