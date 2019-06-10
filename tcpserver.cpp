@@ -3,145 +3,67 @@
 TcpSocket::TcpSocket(qintptr socketdesc, QTcpSocket* parent): QTcpSocket(parent)
 {
     this->setSocketDescriptor(socketdesc);
-    isReturnData = false; // 初始状态，服务器不回复位置信息
+    isReturnData = false;           // 初始状态，服务器不回复位置信息
+    m_oldRobotPos.fill(0, 6);       // 用来记录上一次发送的数据
 }
 
 TcpSocket::~TcpSocket()
 {
-
 }
 
-unsigned char TcpSocket::dataCRC8(QByteArray recBuffer)
+/* 名称：执行动作
+ * 描述：该函数作用为根据JSON格式数据，然后来判定具体要执行的动作命令
+ */
+void TcpSocket::DoWork(QJsonDocument& JsonData)
 {
-    unsigned char crc = 0;
-    int pBuffer = 0;
-
-    // 确保数据正确
-    if (recBuffer.size() <= 0)
-        qDebug()<< "crc error!";
-
-    // 计算CRC8校验码
-    for (int i = 0; i < recBuffer.size()-2; i++) {
-        for (unsigned char i = 0x80; i != 0; i /= 2) {
-            if ((crc & 0x80) != 0) {
-                crc *= 2;
-                crc ^= 0x07;
-            } else
-                crc *= 2;
-
-            if ((recBuffer.at(pBuffer)&i) != 0)
-                crc ^= 0x07;
-        }
-        pBuffer++;
+    QString cmd = JsonData["cmd"].toString();                   // 获取数据内的指令码
+    if (cmd == "ctrl_switch") {
+        isReturnData = JsonData["switch"].toInt() == 1; // 控制服务器端是否给客户端回复pos信息
     }
-
-    return crc;
+    else if (cmd == "ctrl_axis") {                              // 控制机械臂点动
+        int axis = JsonData["axis"].toInt();
+        int dir = JsonData["dir"].toInt();
+        emit ctrlPotAction(axis, dir);
+    }
+    else if (cmd == "ctrl_point") {                             // 控制机械臂标记或者清除记录点
+        int active = JsonData["active"].toInt();
+        emit ctrlSaveOrClearPosInfo(active);
+    }
+    else if (cmd == "ctrl_move") {                              // 控制机械臂按距离移动
+        QVector<double> tmp;
+        tmp.push_back(JsonData["x"].toDouble());
+        tmp.push_back(JsonData["y"].toDouble());
+        tmp.push_back(JsonData["z"].toDouble());
+        emit ctrlMoveByXYZ(tmp);
+    }
 }
 
-void TcpSocket::dataAnalysis(QByteArray recBuffer)
-{
-    // [1]确保数据正确
-    if (recBuffer.isEmpty())
-        return ;
-
-    // [2]对数据进行CRC8校验检查
-//    if (dataCRC8(recBuffer) == *(recBuffer.end()-2)) {
-
-        // 解析数据
-        int cmd = int(recBuffer[1]);
-        switch (cmd) {
-            case 0: { // 控制服务器端是否给客户端回复pos信息
-                isReturnData = int(recBuffer[2]) == 0? false: true;
-                break;
-            }
-            case 5: { // 控制机械臂点动
-                int axis = int(recBuffer[2]);
-                int dir = int(recBuffer[3]);
-                emit ctrlPotAction(axis, dir);
-                break;
-            }
-            case 6: { // 控制机械臂标记或者清除记录点
-                emit ctrlSaveOrClearPosInfo(int(recBuffer[2]));
-                break;
-            }
-            default:
-                break;
-        }
-
-
-//    } else
-//        return ;
-}
-
+/* 名称:读数据并解析数据
+ * 描述：函数从tcp的缓冲区内读取数据，然后将读取到的数据进行拆包解析
+ * 问题：在进行拆包的过程中可能会造成因拆包而产生的延迟，可以尝试开辟
+ *      一个新的线程，专门来进行拆包和解析
+ */
 void TcpSocket::ReadAndParseData()
 {
-    /* [1]从TCP中读取数据 */
-    QByteArray recStr = this->readAll();
-    qDebug()<< recStr;
+    // ![1]从TCP中读取数据
+    QByteArray buffer = this->readAll();
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(buffer);
 
-    static QByteArray recBuffer;
-
-    /* [2]组装数据 */
-    for (auto itor = recStr.begin(); itor != recStr.end(); itor++) {
-
-        // 1.帧尾放进缓存空间
-        recBuffer.append(*itor);
-
-        // 2.判断是否接收到0x0D
-        if (*itor == 0x0D) {
-
-            // 判断是哪个类型的数据
-            int cmd = int(recBuffer[1]);
-            switch (cmd) {
-                case 0:
-                case 6:
-                    if (recBuffer.size() >= 5) {
-                        dataAnalysis(recBuffer);
-                        recBuffer.clear();
-                    }
-                    break;
-                case 5:
-                    if (recBuffer.size() >= 6) {
-                        dataAnalysis(recBuffer);
-                        recBuffer.clear();
-                    }
-                    break;
-                default:
-                    break;
-            }
+    if (!jsonDocument.isObject()) {                                     // 产生了粘包问题
+        QList<QByteArray> data = buffer.split('}');                     // 根据'}'来进行拆包处理
+        for (auto i = 0; i < data.size() - 1; ++i) {                    // 遍历拆分后的数据
+            jsonDocument = QJsonDocument::fromJson(data.at(i) + '}');   // 添加'}'组成完整的json数据
+            if (jsonDocument.isObject()) DoWork(jsonDocument);          // 拆分后是合法的数据,进行动作执行
         }
-//        // 2.判断数据是否达到指定长度
-//        if (recBuffer.length() >= 11) {
-
-//            // 判断0x0D是否是帧尾
-//            if (*itor == 0x0D)
-//                // 将数据进行解析处理
-//                dataAnalysis(recBuffer);
-
-//            // 清空缓存空间
-//            recBuffer.clear();
-//        }
     }
-
-//    QString recvStr = this->readAll();
-
-//    QJsonDocument jsonDocument;
-//    jsonDocument = QJsonDocument::fromJson(recvStr.toUtf8());
-
-//    QJsonObject jsonObject = jsonDocument.object();
-
-//    int cmd = jsonDocument["age"].toInt();
-
-//    switch (cmd) {
-//        case Negative:
-//            emit reqDataFromDialog(Negative);
-//            break;
-//        case Positive:
-//            emit reqDataFromDialog(Positive);
-//            break;
-//    }
+    else
+        DoWork(jsonDocument);
 }
 
+/* 名称：构造函数
+ * 参数：ip地址，端口号，父类对象
+ * 描述：该构造函数会让服务器监听一个ip地址对应的端口号，也就是创建服务器
+ */
 TcpServer::TcpServer(const std::string &ip, quint16 port, QTcpServer* parent): QTcpServer(parent)
 {
     bool isError = false;
@@ -153,6 +75,9 @@ TcpServer::TcpServer(const std::string &ip, quint16 port, QTcpServer* parent): Q
     qDebug()<< "create:"<< isError<< endl;
 }
 
+/* 名称：析构函数
+ * 描述：关闭服务器的监听以及关闭每个线程以及线程内对象的释放
+ */
 TcpServer::~TcpServer()
 {
     this->close(); // 关闭服务器的监听
@@ -165,6 +90,10 @@ TcpServer::~TcpServer()
     }
 }
 
+/* 名称：连接函数
+ * 描述：当有一个客户端连接上来之后，就会执行该函数，该函数会创建一个Socket，并
+ *      会创建一个新的线程，然后会建立通信
+ */
 void TcpServer::incomingConnection(qintptr socketDescriptor)
 {
     qDebug()<< "create new socket";
@@ -187,65 +116,32 @@ void TcpServer::incomingConnection(qintptr socketDescriptor)
 void TcpSocket::sendDataToClient(vStruct* data)
 {
     if (isReturnData) {
-        QJsonObject jsonObject;
-        jsonObject.insert("one", data[0].position);
-        jsonObject.insert("two", data[1].position);
-        jsonObject.insert("three", data[2].position);
-        jsonObject.insert("four", data[3].position);
-        jsonObject.insert("five", data[4].position);
-        jsonObject.insert("six", data[5].position);
 
-        QJsonDocument jsonDocument;
-        jsonDocument.setObject(jsonObject);
-        QByteArray dataArray = jsonDocument.toJson();
-
-        this->write(dataArray);
-        this->flush();
-    }
-
-/*
-    if (isReturnData) {
-        QByteArray msg;
-        QVector<int> angle;
-
-        for (int i = 0; i < 6; i++) {
-           int res = int(data[i].position/ratio[i]*2)%360;
-           angle.append(res);
-        }
-
-        msg.append(0x0B); // 帧头
-        msg.append(0x01); // 命令码
-        for (int i = 0; i < 6; i++) {
-            QByteArray h, l;
-            QByteArray tmp;
-            int tmpAngle = angle[i];
-
-            if (tmpAngle < 0)
-                tmpAngle = -tmpAngle;
-
-            tmp = QByteArray::number(tmpAngle, 16);
-            if (tmp.size() >= 3) {
-                h.push_back(tmp[0]);
-                l.push_back(tmp[1]);
-                l.push_back(tmp[2]);
-                char h_val = char(h.toInt(nullptr, 16));
-                if (angle[i] < 0)
-                    h_val |= 0x10;
-                msg.append(h_val);
-                msg.append(char(l.toInt(nullptr, 16)));
-            } else {
-                if (angle[i] < 0)
-                    msg.append(char(0x10));
-                else
-                    msg.append(char(0x00));
-                msg.append(char(tmp.toInt(nullptr, 16)));
+        bool isSame = true;
+        for (int i = 0; i < 6; ++i) {
+            if ((data[i].position > m_oldRobotPos[i])||(data[i].position < m_oldRobotPos[i])) {
+                isSame = false;
+                break;
             }
         }
-        msg.append(char(dataCRC8(msg)));
-        msg.append(0x0D); // 帧尾
+        if (!isSame) {
+            QJsonObject jsonObject;
+            jsonObject.insert("one", (QString::number(data[0].position, 'f', 4)).toDouble());
+            jsonObject.insert("two", (QString::number(data[1].position, 'f', 4)).toDouble());
+            jsonObject.insert("three", (QString::number(data[2].position, 'f', 4)).toDouble());
+            jsonObject.insert("four", (QString::number(data[3].position, 'f', 4)).toDouble());
+            jsonObject.insert("five", (QString::number(data[4].position, 'f', 4)).toDouble());
+            jsonObject.insert("six", (QString::number(data[5].position, 'f', 4)).toDouble());
 
-        qDebug()<< msg;
-        this->write(msg);
+            for (int i = 0; i < 6; ++i) // 更新旧值
+                m_oldRobotPos[i] = data[i].position;
+
+            QJsonDocument jsonDocument;
+            jsonDocument.setObject(jsonObject);
+            QByteArray dataArray = jsonDocument.toJson(QJsonDocument::Compact);
+
+            this->write(dataArray);
+            this->flush();
+        }
     }
-*/
 }

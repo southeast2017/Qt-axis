@@ -142,6 +142,24 @@ void Operation::setAPosition(double* value)
             sizeof(value[0])*6, value);
 }
 
+/* 名称：设置移动的距离
+ * 描述：设置本次移动距上次移动终点的距离（x,y,z）
+ *      该函数还未经测试
+ */
+void Operation::setOutMovePos(QVector<double> value)
+{
+    unsigned long lHdlVar;
+
+    for (auto i = 0; i < value.size(); ++i) {
+        QString tmp = "GVL.OutMovePos[" + QString::number(i) + "]";
+        char* targetRegister = tmp.toLocal8Bit().data();
+        nErr = AdsSyncReadWriteReq(pAddr, ADSIGRP_SYM_HNDBYNAME, 0x0, sizeof(lHdlVar),
+            &lHdlVar, static_cast<unsigned>(tmp.length()+1), targetRegister);
+        nErr = AdsSyncWriteReq(pAddr, ADSIGRP_SYM_VALBYHND, lHdlVar,
+            sizeof(value), &value);
+    }
+}
+
 Ads::Ads(QObject* parent): QObject (parent)
 {
     mOperation = new Operation();

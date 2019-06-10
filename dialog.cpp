@@ -28,7 +28,8 @@ void Dialog::MyUiInit()
 
     mAds = new Ads();
     server = new TcpServer("192.168.43.99", 7777);
-//    server = new TcpServer("10.21.11.30", 7777);
+//    server = new TcpServer("10.66.11.110", 7777);
+//    server = new TcpServer("172.20.10.2", 7777);
 
     connect(server, &TcpServer::newSocket, this, &Dialog::newSocketConnectToDialog); // 每个socket都与Dialog进行连接
 
@@ -391,6 +392,8 @@ void Dialog::newSocketConnectToDialog(TcpSocket* socket)
     connect(socket, &TcpSocket::ctrlPotAction, mAds->mOperation, &Operation::setStatus);
     // 控制状态机
     connect(socket, &TcpSocket::ctrlSaveOrClearPosInfo, this, &Dialog::ctrlSaveOrClearPosInfo);
+    // 控制机械臂按照xyz坐标点移动
+    connect(socket, &TcpSocket::ctrlMoveByXYZ, mAds->mOperation, &Operation::setOutMovePos);
 }
 
 /* 名称：控制保存或者是清除位置信息
@@ -427,4 +430,3 @@ void Dialog::ctrlSaveOrClearPosInfo(int act)
             break;
     }
 }
-

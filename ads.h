@@ -13,6 +13,10 @@
  *      本函数虽然可以应用于别的地方，但是不推荐应用于别的地方
  */
 
+/* 说明：本节内有些信号与槽可以删掉，
+ * 在外部用一个就好了
+ */
+
 typedef struct {
     double position;
     double speed;
@@ -32,6 +36,7 @@ public slots:
     void readSpeed(int*);
     void setSwitch(bool);
     void setAPosition(double*);
+    void setOutMovePos(QVector<double>); // 设定相对式坐标量的变动值
 
 signals:
     void setValue(vStruct*);
